@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 // Define a home handler func that writes a byte slice containing "hello from the home page" in the response body
@@ -21,15 +23,22 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 // add a show snippets handler function
 func showSnippets(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("This is the show snippets page"))
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+
+	if err != nil || id < 1 {
+		http.NotFound(w, r)
+		return
+	}
+
+	fmt.Fprintf(w, "Showing specific snippet %d", id)
 }
 
 // create snippet handle func
 func createSnippet(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		w.WriteHeader(405)
-		w.Write([]byte("Method not allowed"))
+		w.Header().Set("Allow", http.MethodPost)
 
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 	w.Write([]byte("this is the create snippet page"))
